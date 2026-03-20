@@ -1,6 +1,6 @@
 const express = require('express');
 const line = require('@line/bot-sdk');
-const { google } = require('googleapis');
+const https = require('https');
 
 const app = express();
 
@@ -85,20 +85,13 @@ function sendComplete(replyToken) {
 }
 
 async function recordToSheet(userId, params) {
-  const auth = new google.auth.GoogleAuth({
-    credentials: JSON.parse(process.env.GOOGLE_CREDENTIALS),
-    scopes: ['https://www.googleapis.com/auth/spreadsheets'],
-  });
-  const sheets = google.sheets({ version: 'v4', auth });
-  const now = new Date().toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' });
-  await sheets.spreadsheets.values.append({
-    spreadsheetId: process.env.SHEET_ID,
-    range: 'A:E',
-    valueInputOption: 'RAW',
-    requestBody: {
-      values: [[now, userId, params.rent, params.station, params.madori]]
-    }
-  });
+  const gasUrl = process.env.GAS_URL +
+    '?userId=' + encodeURIComponent(userId) +
+    '&rent=' + encodeURIComponent(params.rent) +
+    '&station=' + encodeURIComponent(params.station) +
+    '&madori=' + encodeURIComponent(params.madori);
+  
+  await fetch(gasUrl);
 }
 
 function btn(label, data) {
