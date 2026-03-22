@@ -21,7 +21,7 @@ async function handleEvent(event) {
   const userId = event.source.userId;
 
   // 部屋探しスタート
-  if (event.type === 'message' && event.message.text === '部屋探し') {
+if (event.type === 'message' && event.message.text === 'お部屋を探す') {
     userState[userId] = { step: 'area' };
     return sendWelcome(event.replyToken);
   }
