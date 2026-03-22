@@ -177,14 +177,23 @@ function sendComplete(replyToken) {
 }
 
 async function recordToSheet(userId, params) {
+  let userName = 'ユーザー名不明';
+  try {
+    const profileRes = await fetch(`https://api.line.me/v2/bot/profile/${userId}`, {
+      headers: { 'Authorization': 'Bearer ' + process.env.LINE_TOKEN }
+    });
+    const profile = await profileRes.json();
+    userName = profile.displayName || 'ユーザー名不明';
+  } catch(e) {}
+
   const gasUrl = process.env.GAS_URL +
-    '?userId='  + encodeURIComponent(userId) +
-    '&area='    + encodeURIComponent(params.area    || '') +
-    '&rent='    + encodeURIComponent(params.rent    || '') +
-    '&madori='  + encodeURIComponent(params.madori  || '') +
-    '&station=' + encodeURIComponent(params.station || '') +
-    '&initial=' + encodeURIComponent(params.initial || '') +
-    '&move_in=' + encodeURIComponent(params.move_in || '');
+    '?userName=' + encodeURIComponent(userName) +
+    '&area='     + encodeURIComponent(params.area    || '') +
+    '&rent='     + encodeURIComponent(params.rent    || '') +
+    '&madori='   + encodeURIComponent(params.madori  || '') +
+    '&station='  + encodeURIComponent(params.station || '') +
+    '&initial='  + encodeURIComponent(params.initial || '') +
+    '&move_in='  + encodeURIComponent(params.move_in || '');
   await fetch(gasUrl);
 }
 
