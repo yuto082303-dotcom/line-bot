@@ -166,20 +166,12 @@ function sendQ6(replyToken) {
 }
 
 function sendQ7(replyToken) {
-  return client.replyMessage(replyToken, {
-    type: 'text',
-    text: 'Q.7 こだわりポイントがあれば教えてください。\n\n例）オートロック、バストイレ別、白い壁紙など',
-    quickReply: {
-      items: [
-        btn('オートロック',  'kodawari=autolock'),
-        btn('バストイレ別',  'kodawari=separate'),
-        btn('宅配ボックス',  'kodawari=delivery'),
-        btn('ペット可',      'kodawari=pet'),
-        btn('こだわらない',  'kodawari=none'),
-        btn('その他を入力',  'free_kodawari'),
-      ]
+  return client.replyMessage(replyToken, [
+    {
+      type: 'text',
+      text: 'Q.7 こだわりポイントを自由に入力してください✏️\n\n例）オートロック、バストイレ別、白い壁紙、ペット可など\n\n特になければ「こだわらない」と送ってください'
     }
-  });
+  ]);
 }
 
 function askFreeInput(replyToken, label, example) {
