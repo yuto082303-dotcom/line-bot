@@ -78,7 +78,7 @@ function sendWelcome(replyToken) {
   return client.replyMessage(replyToken, [
     {
       type: 'text',
-      text: '🏠 物件探し、AIにお任せください！\n\n条件を教えていただくだけで\nぴったりの物件をご提案します✨'
+      text: '7つの質問に答えるだけで\nあなたにぴったりの物件をご提案します！\n\nまずはエリアから教えてください😊'
     },
     {
       type: 'text',
