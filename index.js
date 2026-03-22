@@ -37,6 +37,34 @@ async function handleEvent(event) {
   if (event.type === 'postback') {
     const data = event.postback.data;
     const [key, value] = data.split('=');
+
+    if (!userState[userId]) userState[userId] = {};
+    userState[userId][key] = value;
+
+    const s = userState[userId];
+
+    if (!s.rent)    return sendQ3(event.replyToken, userId);
+    if (!s.madori)  return sendQ4(event.replyToken, userId);
+    if (!s.station) return sendQ5(event.replyToken, userId);
+    if (!s.initial) return sendQ6(event.replyToken, userId);
+    if (!s.move_in) {
+      await recordToSheet(userId, s);
+      delete userState[userId];
+      return sendComplete(event.replyToken);
+    }
+  }
+}
+
+  // Q.1 エリアのテキスト入力を受け取る
+  if (event.type === 'message' && userState[userId] && !userState[userId].area) {
+    userState[userId].area = event.message.text;
+    return sendQ2(event.replyToken, userId);
+  }
+
+  // Q.2〜Q.6 ボタン選択
+  if (event.type === 'postback') {
+    const data = event.postback.data;
+    const [key, value] = data.split('=');
     if (userState[userId]) {
       userState[userId][key] = value;
     }
