@@ -172,7 +172,7 @@ function askFreeInput(replyToken, label, example) {
 function sendComplete(replyToken) {
   return client.replyMessage(replyToken, {
     type: 'text',
-    text: 'ありがとうございます！🎉\n\nご希望条件を受け付けました。\nAIが条件に合う物件を探しています🔍\n\n担当より物件情報をお送りしますので\nしばらくお待ちください😊'
+    text: 'ありがとうございます！\n\nご希望条件を受け付けました。\n条件に合う物件を順次お送りいたします。\n\nその他ご質問や追加のご条件がございましたら\nお気軽にお送りくださいませ😊'
   });
 }
 
