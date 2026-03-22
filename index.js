@@ -30,13 +30,14 @@ async function handleEvent(event) {
     const s = userState[userId];
     if (!s) return;
 
-    if (s.step === 'area')         { s.area = text;    s.step = 'rent';    return sendQ2(event.replyToken); }
-    if (s.step === 'rent_free')    { s.rent = text;    s.step = 'madori';  return sendQ3(event.replyToken); }
-    if (s.step === 'madori_free')  { s.madori = text;  s.step = 'station'; return sendQ4(event.replyToken); }
-    if (s.step === 'station_free') { s.station = text; s.step = 'initial'; return sendQ5(event.replyToken); }
-    if (s.step === 'initial_free') { s.initial = text; s.step = 'move_in'; return sendQ6(event.replyToken); }
-    if (s.step === 'move_in_free') {
-      s.move_in = text;
+    if (s.step === 'area')          { s.area = text;     s.step = 'rent';     return sendQ2(event.replyToken); }
+    if (s.step === 'rent_free')     { s.rent = text;     s.step = 'madori';   return sendQ3(event.replyToken); }
+    if (s.step === 'madori_free')   { s.madori = text;   s.step = 'station';  return sendQ4(event.replyToken); }
+    if (s.step === 'station_free')  { s.station = text;  s.step = 'initial';  return sendQ5(event.replyToken); }
+    if (s.step === 'initial_free')  { s.initial = text;  s.step = 'move_in';  return sendQ6(event.replyToken); }
+    if (s.step === 'move_in_free')  { s.move_in = text;  s.step = 'kodawari'; return sendQ7(event.replyToken); }
+    if (s.step === 'kodawari_free') {
+      s.kodawari = text;
       await recordToSheet(userId, s);
       delete userState[userId];
       return sendComplete(event.replyToken);
@@ -48,19 +49,21 @@ async function handleEvent(event) {
     const s = userState[userId];
     if (!s) return;
 
-    if (data === 'free_rent')    { s.step = 'rent_free';    return askFreeInput(event.replyToken, '家賃', '例）17万円、20万円など'); }
-    if (data === 'free_madori')  { s.step = 'madori_free';  return askFreeInput(event.replyToken, '間取り', '例）1SLDK、メゾネットなど'); }
-    if (data === 'free_station') { s.step = 'station_free'; return askFreeInput(event.replyToken, '駅徒歩', '例）20分以内、バス利用OKなど'); }
-    if (data === 'free_initial') { s.step = 'initial_free'; return askFreeInput(event.replyToken, '初期費用', '例）80万円以下など'); }
-    if (data === 'free_move_in') { s.step = 'move_in_free'; return askFreeInput(event.replyToken, '入居時期', '例）2ヶ月以内、来年4月など'); }
+    if (data === 'free_rent')     { s.step = 'rent_free';     return askFreeInput(event.replyToken, '家賃', '例）17万円、20万円など'); }
+    if (data === 'free_madori')   { s.step = 'madori_free';   return askFreeInput(event.replyToken, '間取り', '例）1SLDK、メゾネットなど'); }
+    if (data === 'free_station')  { s.step = 'station_free';  return askFreeInput(event.replyToken, '駅徒歩', '例）20分以内、バス利用OKなど'); }
+    if (data === 'free_initial')  { s.step = 'initial_free';  return askFreeInput(event.replyToken, '初期費用', '例）80万円以下など'); }
+    if (data === 'free_move_in')  { s.step = 'move_in_free';  return askFreeInput(event.replyToken, '入居時期', '例）2ヶ月以内、来年4月など'); }
+    if (data === 'free_kodawari') { s.step = 'kodawari_free'; return askFreeInput(event.replyToken, 'こだわりポイント', '例）オートロック、バストイレ別、白い壁紙など'); }
 
     const [key, value] = data.split('=');
     s[key] = value;
 
-    if (!s.madori)  { s.step = 'madori';  return sendQ3(event.replyToken); }
-    if (!s.station) { s.step = 'station'; return sendQ4(event.replyToken); }
-    if (!s.initial) { s.step = 'initial'; return sendQ5(event.replyToken); }
-    if (!s.move_in) { s.step = 'move_in'; return sendQ6(event.replyToken); }
+    if (!s.madori)   { s.step = 'madori';   return sendQ3(event.replyToken); }
+    if (!s.station)  { s.step = 'station';  return sendQ4(event.replyToken); }
+    if (!s.initial)  { s.step = 'initial';  return sendQ5(event.replyToken); }
+    if (!s.move_in)  { s.step = 'move_in';  return sendQ6(event.replyToken); }
+    if (!s.kodawari) { s.step = 'kodawari'; return sendQ7(event.replyToken); }
 
     await recordToSheet(userId, s);
     delete userState[userId];
@@ -162,6 +165,23 @@ function sendQ6(replyToken) {
   });
 }
 
+function sendQ7(replyToken) {
+  return client.replyMessage(replyToken, {
+    type: 'text',
+    text: 'Q.7 こだわりポイントがあれば教えてください。\n\n例）オートロック、バストイレ別、白い壁紙など',
+    quickReply: {
+      items: [
+        btn('オートロック',  'kodawari=autolock'),
+        btn('バストイレ別',  'kodawari=separate'),
+        btn('宅配ボックス',  'kodawari=delivery'),
+        btn('ペット可',      'kodawari=pet'),
+        btn('こだわらない',  'kodawari=none'),
+        btn('その他を入力',  'free_kodawari'),
+      ]
+    }
+  });
+}
+
 function askFreeInput(replyToken, label, example) {
   return client.replyMessage(replyToken, {
     type: 'text',
@@ -172,7 +192,7 @@ function askFreeInput(replyToken, label, example) {
 function sendComplete(replyToken) {
   return client.replyMessage(replyToken, {
     type: 'text',
-    text: 'ありがとうございます！\n\nご希望条件を受け付けました。\n条件に合う物件を順次お送りいたします。\n\nその他ご質問や追加のご条件がございましたら\nお気軽にお送りくださいませ😌'
+    text: 'ありがとうございます！\n\nご希望条件を受け付けました。\n条件に合う物件を順次お送りいたします。\n\nその他ご質問や追加のご条件がございましたら\nお気軽にお送りくださいませ😊'
   });
 }
 
@@ -187,13 +207,14 @@ async function recordToSheet(userId, params) {
   } catch(e) {}
 
   const gasUrl = process.env.GAS_URL +
-    '?userName=' + encodeURIComponent(userName) +
-    '&area='     + encodeURIComponent(params.area    || '') +
-    '&rent='     + encodeURIComponent(params.rent    || '') +
-    '&madori='   + encodeURIComponent(params.madori  || '') +
-    '&station='  + encodeURIComponent(params.station || '') +
-    '&initial='  + encodeURIComponent(params.initial || '') +
-    '&move_in='  + encodeURIComponent(params.move_in || '');
+    '?userName='  + encodeURIComponent(userName) +
+    '&area='      + encodeURIComponent(params.area     || '') +
+    '&rent='      + encodeURIComponent(params.rent     || '') +
+    '&madori='    + encodeURIComponent(params.madori   || '') +
+    '&station='   + encodeURIComponent(params.station  || '') +
+    '&initial='   + encodeURIComponent(params.initial  || '') +
+    '&move_in='   + encodeURIComponent(params.move_in  || '') +
+    '&kodawari='  + encodeURIComponent(params.kodawari || '');
   await fetch(gasUrl);
 }
 
